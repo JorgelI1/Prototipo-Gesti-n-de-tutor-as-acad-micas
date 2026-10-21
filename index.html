@@ -146,3 +146,296 @@
                 </section>
 
                 <section id="view-tutor-agenda" class="app-view hidden fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Mi Agenda de Tutorías</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-gray-50 border-b text-sm text-gray-500"><th class="p-4">Fecha/Hora</th><th class="p-4">Estudiante</th><th class="p-4">Materia</th><th class="p-4">Estado</th><th class="p-4 text-right">Acciones</th></tr></thead>
+                            <tbody id="tutor-agenda-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-tutor-availability" class="app-view hidden fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Mi Disponibilidad</h2>
+                        <button onclick="showToast('Abrir modal para agregar horario', 'info')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 flex items-center"><i class="ph ph-plus mr-2"></i> Agregar Horario</button>
+                    </div>
+                    <div class="grid gap-4" id="tutor-availability-list"></div>
+                </section>
+
+                <!-- VISTAS COORDINADOR -->
+                <section id="view-coord-reports" class="app-view hidden fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Panel de Estadísticas</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-xl border-l-4 border-l-indigo-500 shadow-sm"><div class="text-sm text-gray-500">Tutorías (Mes)</div><div class="text-3xl font-bold">142</div></div>
+                        <div class="bg-white p-6 rounded-xl border-l-4 border-l-green-500 shadow-sm"><div class="text-sm text-gray-500">Tasa Asistencia</div><div class="text-3xl font-bold">89%</div></div>
+                        <div class="bg-white p-6 rounded-xl border-l-4 border-l-purple-500 shadow-sm"><div class="text-sm text-gray-500">Tutores Activos</div><div class="text-3xl font-bold">24</div></div>
+                    </div>
+                </section>
+
+                <section id="view-coord-tutors" class="app-view hidden fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Gestión de Tutores</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-gray-50 border-b text-sm text-gray-500"><th class="p-4">Tutor</th><th class="p-4">Correo</th><th class="p-4">Estado</th><th class="p-4 text-right">Acción</th></tr></thead>
+                            <tbody id="coord-tutors-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-coord-reservations" class="app-view hidden fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Gestión Global de Reservas</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-gray-50 border-b text-sm text-gray-500"><th class="p-4">Fecha</th><th class="p-4">Estudiante</th><th class="p-4">Materia</th><th class="p-4">Estado</th><th class="p-4 text-right">Intervención</th></tr></thead>
+                            <tbody id="coord-reservations-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- VISTAS ADMINISTRADOR -->
+                <section id="view-admin-users" class="app-view hidden fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Usuarios y Roles</h2>
+                        <button onclick="openRegisterWorkerModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"><i class="ph ph-plus mr-2"></i> Registrar Trabajador</button>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-gray-50 border-b text-sm text-gray-500"><th class="p-4">Nombre</th><th class="p-4">Correo</th><th class="p-4">Rol Asignado</th></tr></thead>
+                            <tbody id="admin-users-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-admin-catalogs" class="app-view hidden fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Gestión de Catálogos</h2>
+                    <div class="p-6 bg-white border rounded-xl text-gray-500 text-center">Configuración de materias, facultades y recintos.</div>
+                </section>
+
+                <section id="view-admin-logs" class="app-view hidden fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Bitácoras del Sistema</h2>
+                    <div class="p-6 bg-white border rounded-xl text-gray-500 text-center">Registro de auditoría de usuarios y eventos.</div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const MOCK_USERS = [
+            { id: 1, email: 'admin@utp.ac.pa', pass: '123', name: 'Admin Principal', role: 'admin' },
+            { id: 2, email: 'coord@utp.ac.pa', pass: '123', name: 'Martha Coordinadora', role: 'coordinator' },
+            { id: 3, email: 'tutor@utp.ac.pa', pass: '123', name: 'Juan Tutor', role: 'tutor', status: 'active' },
+            { id: 4, email: 'estudiante@utp.ac.pa', pass: '123', name: 'Ana Estudiante', role: 'student' }
+        ];
+
+        let MOCK_TUTORING_SESSIONS = [
+            { id: 101, subject: 'Cálculo I', tutor: 'Juan Tutor', tutorId: 3, date: '2026-10-15', time: '10:00 AM', status: 'available', modality: 'Presencial' },
+            { id: 102, subject: 'Programación', tutor: 'Juan Tutor', tutorId: 3, date: '2026-10-17', time: '09:00 AM', status: 'available', modality: 'Virtual' }
+        ];
+
+        let MOCK_REQUESTS = [
+            { id: 201, sessionId: 102, studentId: 4, studentName: 'Ana Estudiante', subject: 'Programación', date: '2026-10-17', time: '09:00 AM', status: 'pending' },
+            { id: 202, sessionId: 101, studentId: 4, studentName: 'Ana Estudiante', subject: 'Cálculo I', date: '2026-10-15', time: '10:00 AM', status: 'confirmed' },
+            { id: 203, sessionId: 99, studentId: 4, studentName: 'Ana Estudiante', subject: 'Física I', date: '2026-09-10', time: '08:00 AM', status: 'done' }
+        ];
+
+        let currentUser = null;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-green-100 text-green-800', error: 'bg-red-100 text-red-800', info: 'bg-blue-100 text-blue-800' };
+            toast.className = `px-4 py-3 rounded-lg border shadow-sm fade-in ${colors[type]}`;
+            toast.innerHTML = `<span class="text-sm font-medium">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        function showModal(title, contentHTML, onConfirm, confirmText = 'Confirmar') {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = contentHTML;
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            confirmBtn.textContent = confirmText;
+            document.getElementById('global-modal').classList.remove('hidden');
+            
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            if(onConfirm) {
+                newBtn.classList.remove('hidden');
+                newBtn.addEventListener('click', () => { onConfirm(); closeModal(); });
+            } else { newBtn.classList.add('hidden'); }
+        }
+
+        function closeModal() { document.getElementById('global-modal').classList.add('hidden'); }
+
+        function switchAuthView(viewId) {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-register').classList.add('hidden');
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            const user = MOCK_USERS.find(u => u.email === email && u.pass === pass);
+            if (user) login(user);
+            else showToast('Credenciales incorrectas', 'error');
+        }
+
+        function handleRegister(e) { e.preventDefault(); showToast('Función simulada correctamente', 'success'); }
+
+        function login(user) {
+            currentUser = user;
+            document.getElementById('auth-layout').classList.add('hidden');
+            document.getElementById('app-layout').classList.remove('hidden');
+            document.getElementById('user-name').textContent = user.name;
+            document.getElementById('user-avatar').textContent = user.name.charAt(0);
+            setupSidebar();
+            
+            if(user.role === 'student') navigate('view-student-search', 'Buscar Tutorías');
+            else if(user.role === 'tutor') navigate('view-tutor-requests', 'Solicitudes');
+            else if(user.role === 'coordinator') navigate('view-coord-reports', 'Reportes');
+            else if(user.role === 'admin') navigate('view-admin-users', 'Usuarios y Roles');
+        }
+
+        function handleLogout() { location.reload(); }
+
+        const MENUS = {
+            student: [
+                { id: 'view-student-search', label: 'Buscar Tutorías', icon: 'magnifying-glass' },
+                { id: 'view-student-requests', label: 'Mis Solicitudes', icon: 'list-dashes' },
+                { id: 'view-student-history', label: 'Historial', icon: 'clock-counter-clockwise' }
+            ],
+            tutor: [
+                { id: 'view-tutor-requests', label: 'Solicitudes', icon: 'bell-ringing' },
+                { id: 'view-tutor-agenda', label: 'Mi Agenda', icon: 'calendar-check' },
+                { id: 'view-tutor-availability', label: 'Disponibilidad', icon: 'clock' }
+            ],
+            coordinator: [
+                { id: 'view-coord-tutors', label: 'Gestión Tutores', icon: 'users-three' },
+                { id: 'view-coord-reservations', label: 'Reservas', icon: 'calendar' },
+                { id: 'view-coord-reports', label: 'Reportes', icon: 'chart-bar' }
+            ],
+            admin: [
+                { id: 'view-admin-users', label: 'Usuarios y Roles', icon: 'user-gear' },
+                { id: 'view-admin-catalogs', label: 'Catálogos', icon: 'folder' },
+                { id: 'view-admin-logs', label: 'Bitácoras', icon: 'scroll' }
+            ]
+        };
+
+        const ROLE_NAMES = { student: 'Estudiante', tutor: 'Tutor', coordinator: 'Coordinador', admin: 'Administrador' };
+
+        function setupSidebar() {
+            document.getElementById('sidebar-role-label').textContent = ROLE_NAMES[currentUser.role];
+            const nav = document.getElementById('sidebar-nav');
+            nav.innerHTML = '';
+            MENUS[currentUser.role].forEach(item => {
+                const a = document.createElement('a');
+                a.href = "#";
+                a.className = "flex items-center px-4 py-2.5 mt-1 text-sm font-medium rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors";
+                a.innerHTML = `<i class="ph ph-${item.icon} mr-3 text-lg"></i> ${item.label}`;
+                a.onclick = (e) => { e.preventDefault(); navigate(item.id, item.label); };
+                nav.appendChild(a);
+            });
+        }
+
+        function navigate(viewId, title) {
+            document.getElementById('header-title').textContent = title;
+            document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden'));
+            const view = document.getElementById(viewId);
+            if(view) {
+                view.classList.remove('hidden');
+                if(viewId === 'view-student-search') renderStudentSearch();
+                if(viewId === 'view-student-requests') renderStudentRequests();
+                if(viewId === 'view-student-history') renderStudentHistory();
+                if(viewId === 'view-tutor-requests') renderTutorRequests();
+                if(viewId === 'view-tutor-agenda') renderTutorAgenda();
+                if(viewId === 'view-tutor-availability') renderTutorAvailability();
+                if(viewId === 'view-coord-tutors') renderCoordTutors();
+                if(viewId === 'view-coord-reservations') renderCoordReservations();
+                if(viewId === 'view-admin-users') renderAdminUsers();
+            }
+        }
+
+        // ================= STUDENT =================
+        function renderStudentSearch() {
+            const container = document.getElementById('student-tutoring-list');
+            container.innerHTML = '';
+            MOCK_TUTORING_SESSIONS.forEach(session => {
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-xl border shadow-sm"><h3 class="font-bold text-lg">${session.subject}</h3><p class="text-sm text-gray-500">${session.date} - ${session.time}</p><button onclick="requestTutoring(${session.id})" class="mt-4 w-full py-2 bg-indigo-50 text-indigo-700 rounded-lg">Solicitar Cupo</button></div>`;
+            });
+        }
+        function requestTutoring(id) { showToast('Solicitud enviada (UC7)', 'success'); }
+        
+        function renderStudentRequests() {
+            const tbody = document.getElementById('student-requests-table');
+            tbody.innerHTML = '';
+            MOCK_REQUESTS.filter(r => r.studentId === currentUser.id && r.status !== 'done').forEach(req => {
+                tbody.innerHTML += `<tr><td class="p-4">${req.subject}</td><td class="p-4">Tutor</td><td class="p-4">${req.date}</td><td class="p-4">${req.status}</td><td class="p-4 text-right"><button class="text-red-500">Cancelar</button></td></tr>`;
+            });
+        }
+
+        function renderStudentHistory() {
+            const tbody = document.getElementById('student-history-table');
+            tbody.innerHTML = '';
+            MOCK_REQUESTS.filter(r => r.studentId === currentUser.id && r.status === 'done').forEach(req => {
+                tbody.innerHTML += `<tr><td class="p-4">${req.subject}</td><td class="p-4">${req.date}</td><td class="p-4"><span class="px-2 bg-gray-200 rounded-full text-xs">Realizada</span></td></tr>`;
+            });
+        }
+
+        // ================= TUTOR =================
+        function renderTutorRequests() {
+            const container = document.getElementById('tutor-pending-requests');
+            container.innerHTML = '';
+            MOCK_REQUESTS.filter(r => r.status === 'pending').forEach(req => {
+                container.innerHTML += `<div class="bg-white p-4 rounded-xl border"><strong>${req.subject}</strong> - ${req.studentName} <button onclick="showToast('Aceptada', 'success')" class="ml-4 px-3 py-1 bg-green-600 text-white rounded">Aceptar</button></div>`;
+            });
+        }
+
+        function renderTutorAgenda() {
+            const tbody = document.getElementById('tutor-agenda-table');
+            tbody.innerHTML = '';
+            MOCK_REQUESTS.filter(r => r.status === 'confirmed').forEach(req => {
+                tbody.innerHTML += `<tr><td class="p-4">${req.date}</td><td class="p-4">${req.studentName}</td><td class="p-4">${req.subject}</td><td class="p-4">Confirmada</td><td class="p-4 text-right"><button onclick="showModal('Registrar Resultado', 'Formulario de registro', ()=>{showToast('Resultado guardado')})" class="text-indigo-600">Registrar Resultado</button></td></tr>`;
+            });
+        }
+
+        function renderTutorAvailability() {
+            const container = document.getElementById('tutor-availability-list');
+            container.innerHTML = '';
+            MOCK_TUTORING_SESSIONS.filter(s => s.tutorId === currentUser.id).forEach(s => {
+                container.innerHTML += `<div class="p-4 bg-white border rounded"><strong>${s.subject}</strong> - ${s.date} ${s.time}</div>`;
+            });
+        }
+
+        // ================= COORDINADOR =================
+        function renderCoordTutors() {
+            const tbody = document.getElementById('coord-tutors-table');
+            tbody.innerHTML = '';
+            MOCK_USERS.filter(u => u.role === 'tutor').forEach(t => {
+                tbody.innerHTML += `<tr><td class="p-4">${t.name}</td><td class="p-4">${t.email}</td><td class="p-4">Activo</td><td class="p-4 text-right"><button class="text-red-500">Suspender</button></td></tr>`;
+            });
+        }
+
+        function renderCoordReservations() {
+            const tbody = document.getElementById('coord-reservations-table');
+            tbody.innerHTML = '';
+            MOCK_REQUESTS.forEach(req => {
+                tbody.innerHTML += `<tr><td class="p-4">${req.date}</td><td class="p-4">${req.studentName}</td><td class="p-4">${req.subject}</td><td class="p-4">${req.status}</td><td class="p-4 text-right"><button onclick="showModal('Intervenir Reserva', 'Reasignar o Cancelar', ()=>{showToast('Cambiado')})" class="text-blue-500">Reasignar/Cancelar</button></td></tr>`;
+            });
+        }
+
+        // ================= ADMIN =================
+        function renderAdminUsers() {
+            const tbody = document.getElementById('admin-users-table');
+            tbody.innerHTML = '';
+            MOCK_USERS.filter(u => u.role !== 'student').forEach(u => {
+                tbody.innerHTML += `<tr><td class="p-4">${u.name}</td><td class="p-4">${u.email}</td><td class="p-4">${u.role}</td></tr>`;
+            });
+        }
+    </script>
+</body>
+</html>
