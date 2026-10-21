@@ -3,368 +3,498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wireframe - Sistema de Tutorías UTP</title>
+    <title>Prototipo - Gestión de Tutorías UTP</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Architects Daughter', cursive, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-        }
-        /* Estilos de Wireframe (Baja Fidelidad) */
-        .wf-container {
-            border: 3px solid #333;
-            border-radius: 8px;
-            box-shadow: 6px 6px 0px #d1d5db;
-            background-color: white;
-        }
-        .wf-input {
-            border: 2px dashed #666;
-            background: transparent;
-            font-family: inherit;
-        }
-        .wf-input:focus {
-            outline: none;
-            border-color: #333;
-            border-style: solid;
-        }
-        .wf-btn {
-            border: 2px solid #333;
-            background-color: #e5e7eb;
-            box-shadow: 3px 3px 0px #9ca3af;
-            transition: all 0.1s;
-            font-weight: bold;
-        }
-        .wf-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0px #9ca3af;
-        }
-        .wf-nav-item {
-            border-bottom: 2px dashed #ccc;
-            cursor: pointer;
-        }
-        .wf-nav-item:hover, .wf-nav-item.active {
-            font-weight: bold;
-            border-bottom: 2px solid #333;
-            background-color: #f3f4f6;
-        }
-        .wf-table th, .wf-table td {
-            border: 2px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-        .wf-table th {
-            border-bottom: 3px solid #333;
-            background-color: #f3f4f6;
-        }
-        .wf-modal {
-            background: rgba(0, 0, 0, 0.5);
-        }
+        /* Estilos personalizados para animaciones y scroll */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+        .toast-enter { animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 flex items-center justify-center">
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
 
-    <!-- DEV TOOLBAR (Solo para simular navegación rápida entre roles) -->
-    <div class="fixed top-0 left-0 w-full bg-black text-white p-2 text-xs flex gap-4 z-50 justify-center">
-        <span>Simulador de Roles:</span>
-        <button onclick="loginAs('estudiante')" class="underline hover:text-gray-300">Estudiante</button>
-        <button onclick="loginAs('tutor')" class="underline hover:text-gray-300">Tutor</button>
-        <button onclick="loginAs('coordinador')" class="underline hover:text-gray-300">Coordinador</button>
-        <button onclick="loginAs('admin')" class="underline hover:text-gray-300">Administrador</button>
-        <button onclick="logout()" class="underline text-red-300 hover:text-red-100">Cerrar Sesión</button>
-    </div>
+    <!-- CONTENEDOR PRINCIPAL DE LA APP -->
+    <div id="app" class="w-full h-full flex flex-col"></div>
 
-    <!-- PANTALLA DE INICIO (LOGIN) -->
-    <div id="login-view" class="w-full max-w-md wf-container p-8 mt-10">
-        <h1 class="text-3xl font-bold text-center mb-2">Sistema de Tutorías</h1>
-        <p class="text-center text-gray-500 mb-8">Universidad Tecnológica de Panamá</p>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block mb-1 font-bold">Correo Institucional</label>
-                <input type="text" class="w-full p-2 wf-input" value="usuario@utp.ac.pa">
-            </div>
-            <div>
-                <label class="block mb-1 font-bold">Contraseña</label>
-                <input type="password" class="w-full p-2 wf-input" value="123456">
-            </div>
-            
-            <button onclick="loginAs('estudiante')" class="w-full p-3 wf-btn mt-4">Iniciar Sesión</button>
-            
-            <div class="text-center mt-4">
-                <a href="#" class="text-sm underline">Olvidé mi contraseña</a>
-            </div>
-            
-            <hr class="border-2 border-dashed border-gray-300 my-6">
-            
-            <button class="w-full p-3 wf-btn" style="background-color: white;">Registrarse como Estudiante</button>
-        </div>
-    </div>
-
-    <!-- PANEL PRINCIPAL (DASHBOARD) -->
-    <div id="dashboard-view" class="hidden w-full max-w-5xl wf-container flex flex-col h-[80vh] mt-10">
-        <!-- HEADER -->
-        <header class="border-b-4 border-gray-800 p-4 flex justify-between items-center bg-gray-100">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 border-2 border-black flex items-center justify-center font-bold bg-white">UTP</div>
-                <h2 id="user-role-title" class="text-xl font-bold">Panel</h2>
-            </div>
-            <div class="flex items-center gap-4">
-                <span id="user-name">Usuario</span>
-                <span class="text-xl cursor-pointer" title="Notificaciones">🔔</span>
-                <button onclick="logout()" class="wf-btn px-3 py-1 text-sm">Salir</button>
-            </div>
-        </header>
-
-        <!-- LAYOUT -->
-        <div class="flex flex-1 overflow-hidden">
-            <!-- SIDEBAR MENÚ -->
-            <aside class="w-64 border-r-4 border-gray-800 bg-white overflow-y-auto" id="sidebar-menu">
-                <!-- Generado dinámicamente -->
-            </aside>
-
-            <!-- CONTENIDO PRINCIPAL -->
-            <main class="flex-1 p-6 overflow-y-auto bg-white" id="main-content">
-                <!-- Generado dinámicamente -->
-            </main>
-        </div>
-    </div>
-
-    <!-- MODAL DINÁMICO -->
-    <div id="modal-container" class="fixed inset-0 wf-modal hidden flex items-center justify-center z-50">
-        <div class="wf-container w-full max-w-lg p-6 bg-white relative">
-            <button onclick="closeModal()" class="absolute top-2 right-4 text-2xl font-bold">&times;</button>
-            <div id="modal-content"></div>
-        </div>
-    </div>
-
-    <!-- SISTEMA DE NOTIFICACIONES (TOAST) -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+    <!-- CONTENEDOR DE NOTIFICACIONES (TOASTS) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
 
     <script>
-        // ESTADO DE LA APLICACIÓN
+        // ==========================================
+        // 1. ESTADO GLOBAL Y DATOS MOCKEADOS
+        // ==========================================
         const state = {
+            isLoggedIn: false,
             currentUser: null,
-            currentRole: null,
-            currentView: null
-        };
-
-        // ESTRUCTURA DE NAVEGACIÓN BASADA EN EL MODELO INICIAL DEL DOC
-        const navigation = {
-            estudiante: [
-                { id: 'buscar_tutorias', label: 'Buscar Tutorías' },
-                { id: 'mis_solicitudes', label: 'Mis Solicitudes' },
-                { id: 'historial_est', label: 'Historial' }
-            ],
-            tutor: [
-                { id: 'solicitudes_recibidas', label: 'Solicitudes' },
-                { id: 'mi_agenda', label: 'Mi Agenda' },
-                { id: 'disponibilidad', label: 'Disponibilidad' }
-            ],
-            coordinador: [
-                { id: 'gestion_tutores', label: 'Gestión de Tutores' },
-                { id: 'reservas_global', label: 'Reservas' },
-                { id: 'reportes', label: 'Reportes' }
-            ],
-            admin: [
-                { id: 'usuarios_roles', label: 'Usuarios y Roles' },
-                { id: 'catalogos', label: 'Catálogos' },
-                { id: 'bitacoras', label: 'Bitácoras' }
-            ]
-        };
-
-        // LÓGICA DE INTERFAZ
-        function loginAs(role) {
-            state.currentRole = role;
-            state.currentUser = `Juan (${role})`;
-            
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            
-            const titles = { estudiante: 'Portal Estudiantil', tutor: 'Portal del Tutor', coordinador: 'Coordinación', admin: 'Administración' };
-            document.getElementById('user-role-title').innerText = titles[role];
-            document.getElementById('user-name').innerText = state.currentUser;
-
-            renderSidebar();
-            // Cargar la primera vista por defecto
-            loadView(navigation[role][0].id);
-        }
-
-        function logout() {
-            state.currentRole = null;
-            state.currentUser = null;
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('login-view').classList.remove('hidden');
-        }
-
-        function renderSidebar() {
-            const menu = navigation[state.currentRole];
-            const sidebar = document.getElementById('sidebar-menu');
-            sidebar.innerHTML = '<div class="p-4 font-bold text-gray-500 border-b-2 border-dashed border-gray-300">Menú Principal</div>';
-            
-            menu.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `p-4 wf-nav-item ${state.currentView === item.id ? 'active' : ''}`;
-                div.innerText = item.label;
-                div.onclick = () => loadView(item.id);
-                sidebar.appendChild(div);
-            });
-        }
-
-        function loadView(viewId) {
-            state.currentView = viewId;
-            renderSidebar(); // Actualiza clase active
-            const main = document.getElementById('main-content');
-            
-            // Ruteador de Vistas basado en el Modelo de Navegación Inicial
-            switch(viewId) {
-                // RUTA ESTUDIANTE
-                case 'buscar_tutorias':
-                    main.innerHTML = `
-                        <h3 class="text-2xl font-bold mb-4">Buscar Tutorías</h3>
-                        <div class="flex gap-4 mb-6">
-                            <input type="text" placeholder="Asignatura..." class="p-2 wf-input flex-1">
-                            <select class="p-2 wf-input"><option>Cualquier Modalidad</option><option>Presencial</option><option>Virtual</option></select>
-                            <button class="wf-btn px-4" onclick="showToast('Buscando...')">Filtrar</button>
-                        </div>
-                        <table class="w-full wf-table">
-                            <tr><th>Asignatura</th><th>Tutor</th><th>Próximo Horario</th><th>Acción</th></tr>
-                            <tr><td>Cálculo II</td><td>Ana Ramos</td><td>Jueves 14:00 (Presencial)</td><td><button class="wf-btn px-2 text-sm" onclick="abrirDetalleTutoria('Cálculo II', 'Ana Ramos')">Detalle / Solicitar</button></td></tr>
-                            <tr><td>Física I</td><td>Carlos M.</td><td>Viernes 10:00 (Virtual)</td><td><button class="wf-btn px-2 text-sm" onclick="abrirDetalleTutoria('Física I', 'Carlos M.')">Detalle / Solicitar</button></td></tr>
-                        </table>
-                    `;
-                    break;
-                case 'mis_solicitudes':
-                    main.innerHTML = `
-                        <h3 class="text-2xl font-bold mb-4">Mis Solicitudes</h3>
-                        <table class="w-full wf-table">
-                            <tr><th>Tutoría</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr>
-                            <tr><td>Cálculo II</td><td>Jueves 14:00</td><td>Pendiente</td><td><button class="wf-btn px-2 text-sm text-red-600" onclick="showToast('Solicitud Cancelada')">Cancelar</button></td></tr>
-                            <tr><td>Programación</td><td>Ayer 09:00</td><td>Confirmada</td><td>-</td></tr>
-                        </table>
-                    `;
-                    break;
-                case 'historial_est':
-                    main.innerHTML = `<h3 class="text-2xl font-bold mb-4">Historial de Tutorías</h3><div class="p-4 border-2 border-dashed border-gray-400">Listado de sesiones pasadas y valoraciones.</div>`;
-                    break;
-
-                // RUTA TUTOR
-                case 'solicitudes_recibidas':
-                    main.innerHTML = `
-                        <h3 class="text-2xl font-bold mb-4">Solicitudes Recibidas</h3>
-                        <div class="grid grid-cols-1 gap-4">
-                            <div class="border-2 border-black p-4 bg-gray-50 flex justify-between items-center">
-                                <div><strong>Luis Pérez</strong> solicita Física I<br><span class="text-sm">Viernes 10:00 AM</span></div>
-                                <div class="flex gap-2">
-                                    <button class="wf-btn px-3 py-1 bg-green-100" onclick="showToast('Solicitud Aceptada')">Aceptar</button>
-                                    <button class="wf-btn px-3 py-1 bg-red-100" onclick="showToast('Solicitud Rechazada')">Rechazar</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                case 'mi_agenda':
-                    main.innerHTML = `
-                        <h3 class="text-2xl font-bold mb-4">Mi Agenda</h3>
-                        <table class="w-full wf-table">
-                            <tr><th>Día/Hora</th><th>Estudiante</th><th>Materia</th><th>Acción</th></tr>
-                            <tr><td>Hoy 14:00</td><td>Luis Pérez</td><td>Física I</td><td><button class="wf-btn px-2 text-sm" onclick="abrirRegistrarResultado()">Registrar Resultado</button></td></tr>
-                            <tr><td>Mañana 10:00</td><td>María G.</td><td>Cálculo I</td><td>Pendiente de impartir</td></tr>
-                        </table>
-                    `;
-                    break;
-                case 'disponibilidad':
-                    main.innerHTML = `<h3 class="text-2xl font-bold mb-4">Disponibilidad</h3><button class="wf-btn p-2 mb-4">+ Agregar Bloque Horario</button><div class="p-4 border-2 border-dashed border-gray-400">Calendario de bloques horarios.</div>`;
-                    break;
-
-                // RUTA COORDINADOR
-                case 'gestion_tutores':
-                    main.innerHTML = `
-                        <h3 class="text-2xl font-bold mb-4">Gestión de Tutores</h3>
-                        <table class="w-full wf-table">
-                            <tr><th>Nombre</th><th>Materias</th><th>Estado</th><th>Acciones</th></tr>
-                            <tr><td>Ana Ramos</td><td>Cálculo II, III</td><td>Aprobado</td><td><button class="wf-btn px-2 text-sm">Gestionar</button></td></tr>
-                            <tr><td>Pedro Gil</td><td>Química General</td><td>Pendiente</td><td><button class="wf-btn px-2 text-sm">Aprobar</button></td></tr>
-                        </table>
-                    `;
-                    break;
-                case 'reservas_global':
-                    main.innerHTML = `<h3 class="text-2xl font-bold mb-4">Reservas Globales</h3><div class="p-4 border-2 border-dashed border-gray-400">Vista de todas las reservas del programa para reasignar o monitorear conflictos.</div>`;
-                    break;
-                case 'reportes':
-                    main.innerHTML = `<h3 class="text-2xl font-bold mb-4">Reportes y Estadísticas</h3><div class="flex gap-4 mb-4"><select class="p-2 wf-input"><option>Cobertura</option><option>Asistencia</option></select><button class="wf-btn p-2" onclick="showToast('Generando reporte...')">Generar</button></div><div class="h-40 border-2 border-black flex items-center justify-center bg-gray-100">[ Gráfico de Barras ]</div>`;
-                    break;
-
-                // RUTA ADMIN
-                case 'usuarios_roles':
-                    main.innerHTML = `
-                        <h3 class="text-2xl font-bold mb-4">Usuarios y Roles</h3>
-                        <button class="wf-btn p-2 mb-4" onclick="showToast('Abriendo formulario...')">+ Registrar Trabajador</button>
-                        <table class="w-full wf-table">
-                            <tr><th>Usuario</th><th>Correo</th><th>Rol Actual</th><th>Asignar Rol</th></tr>
-                            <tr><td>Ing. Roberto</td><td>roberto@utp.ac.pa</td><td>Pendiente</td><td><select class="p-1 wf-input text-sm"><option>Tutor</option><option>Coordinador</option></select> <button class="wf-btn px-1">Ok</button></td></tr>
-                        </table>
-                    `;
-                    break;
-                case 'catalogos':
-                    main.innerHTML = `<h3 class="text-2xl font-bold mb-4">Catálogos</h3><div class="p-4 border-2 border-dashed border-gray-400">Mantenimiento de Facultades, Carreras, Asignaturas y Recintos.</div>`;
-                    break;
-                case 'bitacoras':
-                    main.innerHTML = `<h3 class="text-2xl font-bold mb-4">Bitácoras del Sistema</h3><div class="p-4 border-2 border-dashed border-gray-400">Registro de errores y actividad de usuarios.</div>`;
-                    break;
-
-                default:
-                    main.innerHTML = `<h3>Vista no encontrada</h3>`;
+            currentView: '',
+            menuConfig: {
+                // Modelo de Navegación Inicial exacto según documento Fase 1
+                'Estudiante': [
+                    { id: 'buscar-tutorias', label: 'Buscar Tutorías', icon: 'fa-search' },
+                    { id: 'mis-solicitudes', label: 'Mis Solicitudes', icon: 'fa-calendar-check' },
+                    { id: 'historial', label: 'Historial', icon: 'fa-history' }
+                ],
+                'Tutor': [
+                    { id: 'solicitudes-tutor', label: 'Solicitudes', icon: 'fa-inbox' },
+                    { id: 'mi-agenda', label: 'Mi Agenda', icon: 'fa-book-open' },
+                    { id: 'disponibilidad', label: 'Disponibilidad', icon: 'fa-clock' }
+                ],
+                'Coordinador': [
+                    { id: 'gestion-tutores', label: 'Gestión de Tutores', icon: 'fa-users-cog' },
+                    { id: 'reservas', label: 'Reservas', icon: 'fa-calendar-alt' },
+                    { id: 'reportes', label: 'Reportes', icon: 'fa-chart-bar' }
+                ],
+                'Administrador': [
+                    { id: 'usuarios-roles', label: 'Usuarios y Roles', icon: 'fa-user-shield' },
+                    { id: 'catalogos', label: 'Catálogos', icon: 'fa-folder-tree' },
+                    { id: 'bitacoras', label: 'Bitácoras', icon: 'fa-clipboard-list' }
+                ]
             }
+        };
+
+        // ==========================================
+        // 2. SISTEMA DE NOTIFICACIONES Y MODALES
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-rose-600' : 'bg-blue-600');
+            const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+            
+            toast.className = `toast-enter flex items-center p-4 text-white rounded-lg shadow-lg ${bg}`;
+            toast.innerHTML = `<i class="fas ${icon} mr-3 text-lg"></i> <span class="font-medium">${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
-        // FUNCIONES DE MODALES Y VISTAS SECUNDARIAS
-        function abrirDetalleTutoria(materia, tutor) {
-            const modal = document.getElementById('modal-container');
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                <h3 class="text-xl font-bold mb-2">Detalle de Tutoría</h3>
-                <p class="mb-4"><strong>Materia:</strong> ${materia}<br><strong>Tutor:</strong> ${tutor}</p>
-                <label class="block mb-1 font-bold">Seleccionar Horario Disponible:</label>
-                <select class="w-full p-2 wf-input mb-4"><option>Jueves 14:00 - Presencial</option><option>Jueves 15:00 - Presencial</option></select>
-                <button class="w-full p-3 wf-btn" onclick="showToast('Solicitud enviada al tutor'); closeModal()">Confirmar Solicitud</button>
+        function openModal(title, contentHTML, actionsHTML) {
+            const modalHtml = `
+                <div id="dynamic-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg fade-in overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-blue-900 text-white">
+                            <h3 class="text-lg font-bold">${title}</h3>
+                            <button onclick="closeModal()" class="text-white hover:text-red-300 transition"><i class="fas fa-times text-xl"></i></button>
+                        </div>
+                        <div class="p-6 text-slate-600">${contentHTML}</div>
+                        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">${actionsHTML}</div>
+                    </div>
+                </div>
             `;
-            modal.classList.remove('hidden');
-        }
-
-        function abrirRegistrarResultado() {
-            const modal = document.getElementById('modal-container');
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                <h3 class="text-xl font-bold mb-2">Registrar Resultado</h3>
-                <label class="flex items-center gap-2 mb-3"><input type="checkbox" class="w-5 h-5"> El estudiante asistió</label>
-                <label class="block mb-1 font-bold">Tema Trabajado:</label>
-                <input type="text" class="w-full p-2 wf-input mb-3" placeholder="Ej. Derivadas parciales...">
-                <label class="block mb-1 font-bold">Observaciones (Opcional):</label>
-                <textarea class="w-full p-2 wf-input mb-4" rows="2"></textarea>
-                <button class="w-full p-3 wf-btn" onclick="showToast('Resultado registrado en el historial'); closeModal()">Guardar</button>
-            `;
-            modal.classList.remove('hidden');
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
         function closeModal() {
-            document.getElementById('modal-container').classList.add('hidden');
+            const modal = document.getElementById('dynamic-modal');
+            if (modal) modal.remove();
         }
 
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'bg-black text-white px-4 py-2 rounded shadow-lg transition-opacity duration-500';
-            toast.innerText = message;
-            
-            const container = document.getElementById('toast-container');
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+        // ==========================================
+        // 3. ENRUTADOR Y RENDERIZADO PRINCIPAL
+        // ==========================================
+        function renderApp() {
+            const app = document.getElementById('app');
+            if (!state.isLoggedIn) {
+                app.innerHTML = getLoginHTML();
+            } else {
+                app.innerHTML = getLayoutHTML();
+                renderMenu();
+                navigate(state.menuConfig[state.currentUser.role][0].id); // Navegar a la primera opción por defecto
+            }
         }
+
+        function login(role) {
+            state.isLoggedIn = true;
+            state.currentUser = { name: `Usuario ${role}`, role: role };
+            showToast(`Sesión iniciada como ${role}`);
+            renderApp();
+        }
+
+        function logout() {
+            state.isLoggedIn = false;
+            state.currentUser = null;
+            showToast('Sesión cerrada correctamente', 'info');
+            renderApp();
+        }
+
+        function navigate(viewId) {
+            state.currentView = viewId;
+            // Actualizar menú activo
+            document.querySelectorAll('.menu-item').forEach(el => {
+                if(el.dataset.view === viewId) {
+                    el.classList.add('bg-blue-800', 'border-l-4', 'border-white');
+                    el.classList.remove('hover:bg-blue-800');
+                } else {
+                    el.classList.remove('bg-blue-800', 'border-l-4', 'border-white');
+                    el.classList.add('hover:bg-blue-800');
+                }
+            });
+            // Renderizar vista
+            const contentArea = document.getElementById('main-content');
+            contentArea.innerHTML = getViewController(viewId);
+        }
+
+        // ==========================================
+        // 4. COMPONENTES ESTRUCTURALES (HTML)
+        // ==========================================
+        function getLoginHTML() {
+            return `
+                <div class="w-full h-full flex items-center justify-center bg-blue-900 bg-opacity-5">
+                    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+                        <div class="text-center mb-8">
+                            <div class="w-20 h-20 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold">UTP</div>
+                            <h1 class="text-2xl font-bold text-slate-800">Tutorías Académicas</h1>
+                            <p class="text-slate-500 mt-2 text-sm">Inicio de Sesión / Registro</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Correo Institucional</label>
+                                <input type="email" value="usuario@utp.ac.pa" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+                                <input type="password" value="******" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div class="pt-4 border-t border-slate-100 mt-4">
+                                <p class="text-xs text-center text-slate-500 mb-3">Selector rápido para evaluación (Wireframe)</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="login('Estudiante')" class="bg-blue-100 text-blue-800 py-2 rounded-lg text-sm font-semibold hover:bg-blue-200 transition">Entrar Estudiante</button>
+                                    <button onclick="login('Tutor')" class="bg-emerald-100 text-emerald-800 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-200 transition">Entrar Tutor</button>
+                                    <button onclick="login('Coordinador')" class="bg-amber-100 text-amber-800 py-2 rounded-lg text-sm font-semibold hover:bg-amber-200 transition">Entrar Coordinador</button>
+                                    <button onclick="login('Administrador')" class="bg-purple-100 text-purple-800 py-2 rounded-lg text-sm font-semibold hover:bg-purple-200 transition">Entrar Admin</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getLayoutHTML() {
+            return `
+                <!-- HEADER -->
+                <header class="bg-blue-900 text-white h-16 flex items-center justify-between px-6 shadow-md z-10 shrink-0">
+                    <div class="flex items-center gap-4">
+                        <div class="font-bold text-xl tracking-tight">UTP Tutorías</div>
+                        <span class="bg-blue-800 px-3 py-1 rounded-full text-xs font-medium border border-blue-700">${state.currentUser.role}</span>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <button class="relative hover:text-blue-200 transition">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">3</span>
+                        </button>
+                        <div class="flex items-center gap-3 border-l border-blue-800 pl-6">
+                            <i class="fas fa-user-circle text-2xl text-blue-300"></i>
+                            <span class="font-medium text-sm hidden md:block">${state.currentUser.name}</span>
+                            <button onclick="logout()" class="ml-2 text-blue-300 hover:text-white transition" title="Cerrar sesión">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="flex flex-1 overflow-hidden">
+                    <!-- SIDEBAR -->
+                    <aside class="w-64 bg-blue-900 text-blue-100 flex flex-col shrink-0 shadow-inner">
+                        <div class="p-4 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2 mt-4">Navegación Principal</div>
+                        <nav id="sidebar-menu" class="flex-1 flex flex-col gap-1 px-2"></nav>
+                    </aside>
+
+                    <!-- CONTENIDO DINÁMICO -->
+                    <main class="flex-1 bg-slate-50 p-8 overflow-y-auto" id="main-content">
+                        <!-- Vistas renderizadas por JS -->
+                    </main>
+                </div>
+            `;
+        }
+
+        function renderMenu() {
+            const menuContainer = document.getElementById('sidebar-menu');
+            const items = state.menuConfig[state.currentUser.role] || [];
+            menuContainer.innerHTML = items.map(item => `
+                <button data-view="${item.id}" onclick="navigate('${item.id}')" class="menu-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg font-medium transition duration-200">
+                    <i class="fas ${item.icon} w-5 text-center"></i>
+                    ${item.label}
+                </button>
+            `).join('');
+        }
+
+        // ==========================================
+        // 5. CONTROLADOR DE VISTAS (LÓGICA DEL WIREFRAME)
+        // ==========================================
+        function getViewController(viewId) {
+            let html = `<div class="fade-in max-w-6xl mx-auto">`;
+            
+            // --- VISTAS DEL ESTUDIANTE ---
+            if (viewId === 'buscar-tutorias') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Buscar Tutorías</h2>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex gap-4 items-end">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Asignatura</label>
+                            <select class="w-full border border-slate-300 rounded-lg p-2"><option>Cálculo II</option><option>Programación I</option></select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Modalidad</label>
+                            <select class="w-full border border-slate-300 rounded-lg p-2"><option>Cualquiera</option><option>Presencial</option><option>Virtual</option></select>
+                        </div>
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition">Buscar</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Cálculo II</span>
+                                    <h3 class="font-bold text-lg mt-2 text-slate-800">Prof. Juan Pérez</h3>
+                                </div>
+                                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded flex items-center gap-1"><i class="fas fa-users"></i> 3 cupos</span>
+                            </div>
+                            <p class="text-slate-500 text-sm mb-4"><i class="fas fa-map-marker-alt w-4"></i> Edificio 3, Aula 302 (Presencial)</p>
+                            <p class="text-slate-700 font-medium text-sm mb-4"><i class="far fa-clock w-4 text-slate-400"></i> Jueves, 14:00 - 15:30</p>
+                            <!-- Nodo: Detalle / Solicitar -->
+                            <button onclick="simularSolicitud()" class="mt-auto w-full bg-blue-50 text-blue-700 border border-blue-200 py-2 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition">Ver Detalle / Solicitar</button>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (viewId === 'mis-solicitudes') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Mis Solicitudes Activas</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-slate-50 border-b border-slate-200 text-sm text-slate-500"><th class="p-4">Asignatura</th><th class="p-4">Fecha/Hora</th><th class="p-4">Estado</th><th class="p-4 text-right">Acción</th></tr></thead>
+                            <tbody>
+                                <tr class="border-b border-slate-100">
+                                    <td class="p-4 font-medium text-slate-800">Física I</td>
+                                    <td class="p-4 text-slate-600 text-sm">Lun 12 Oct, 10:00</td>
+                                    <td class="p-4"><span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded">Pendiente</span></td>
+                                    <td class="p-4 text-right">
+                                        <!-- Nodo: Cancelar Solicitud -->
+                                        <button onclick="simularCancelacion()" class="text-rose-600 hover:text-rose-800 text-sm font-medium"><i class="fas fa-times-circle mr-1"></i> Cancelar</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            else if (viewId === 'historial') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Historial de Tutorías</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-slate-500">
+                        <i class="fas fa-history text-4xl mb-3 text-slate-300"></i>
+                        <p>Aquí se listarán las tutorías a las que has asistido en semestres anteriores.</p>
+                    </div>
+                `;
+            }
+
+            // --- VISTAS DEL TUTOR ---
+            else if (viewId === 'solicitudes-tutor') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Solicitudes de Estudiantes</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-slate-50 border-b border-slate-200 text-sm text-slate-500"><th class="p-4">Estudiante</th><th class="p-4">Materia / Horario</th><th class="p-4 text-right">Acciones</th></tr></thead>
+                            <tbody>
+                                <tr class="border-b border-slate-100">
+                                    <td class="p-4"><div class="font-medium text-slate-800">Carlos Díaz</div><div class="text-xs text-slate-500">carlos.diaz@utp.ac.pa</div></td>
+                                    <td class="p-4"><div class="font-medium text-slate-700">Cálculo II</div><div class="text-xs text-slate-500">Jueves 15, 14:00</div></td>
+                                    <td class="p-4 text-right">
+                                        <!-- Nodo: Aceptar / Rechazar -->
+                                        <button onclick="showToast('Solicitud Aceptada y agregada a tu agenda')" class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-sm font-medium hover:bg-emerald-200 mr-2">Aceptar</button>
+                                        <button onclick="simularRechazo()" class="bg-rose-100 text-rose-800 px-3 py-1 rounded text-sm font-medium hover:bg-rose-200">Rechazar</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            else if (viewId === 'mi-agenda') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Mi Agenda de Tutorías</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white border-l-4 border-blue-600 p-5 rounded-r-xl shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-lg text-slate-800">Programación I</h3>
+                                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Hoy, 16:00</span>
+                            </div>
+                            <p class="text-slate-600 text-sm mt-2">Estudiantes confirmados: 2</p>
+                            <div class="mt-4 pt-4 border-t border-slate-100 flex gap-2">
+                                <!-- Nodo: Registrar Resultado -->
+                                <button onclick="simularRegistroResultado()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 w-full text-center transition">Registrar Resultado</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (viewId === 'disponibilidad') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Configurar Disponibilidad</h2>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm max-w-2xl">
+                        <p class="text-slate-600 mb-4 text-sm">Agrega los bloques de tiempo en los que estás disponible para brindar tutorías esta semana.</p>
+                        <button onclick="showToast('Bloque de horario agregado correctamente')" class="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition"><i class="fas fa-plus mr-2"></i>Añadir Horario</button>
+                    </div>
+                `;
+            }
+
+            // --- VISTAS DEL COORDINADOR ---
+            else if (viewId === 'gestion-tutores') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Gestión de Tutores</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-slate-50 border-b border-slate-200 text-sm text-slate-500"><th class="p-4">Nombre Tutor</th><th class="p-4">Materias Asignadas</th><th class="p-4 text-right">Acción</th></tr></thead>
+                            <tbody>
+                                <tr class="border-b border-slate-100">
+                                    <td class="p-4 font-medium text-slate-800">Ana Ruiz</td>
+                                    <td class="p-4 text-slate-600 text-sm">Física I, Física II</td>
+                                    <td class="p-4 text-right"><button onclick="showToast('Aprobación actualizada')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Revisar Perfil</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            else if (viewId === 'reservas') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Control Global de Reservas</h2>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500">
+                        <i class="fas fa-calendar-alt text-4xl mb-3 text-slate-300"></i>
+                        <p>Vista general de todas las tutorías programadas en el sistema para reasignación o cancelación administrativa.</p>
+                    </div>
+                `;
+            }
+            else if (viewId === 'reportes') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Estadísticas y Reportes</h2>
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-blue-500">
+                            <div class="text-slate-500 text-sm font-medium">Tutorías Realizadas</div>
+                            <div class="text-3xl font-bold text-slate-800 mt-2">142</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-emerald-500">
+                            <div class="text-slate-500 text-sm font-medium">Asistencia Promedio</div>
+                            <div class="text-3xl font-bold text-slate-800 mt-2">94%</div>
+                        </div>
+                    </div>
+                    <button onclick="showToast('Generando reporte PDF...', 'info')" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition"><i class="fas fa-download mr-2"></i> Exportar Datos</button>
+                `;
+            }
+
+            // --- VISTAS DEL ADMINISTRADOR ---
+            else if (viewId === 'usuarios-roles') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Gestión de Usuarios y Roles</h2>
+                    <button onclick="showToast('Abriendo formulario de nuevo usuario...')" class="mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"><i class="fas fa-user-plus mr-2"></i>Registrar Trabajador</button>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500">
+                        <p>Tabla de administración central de cuentas, asignación de roles (Tutor/Coordinador) y desactivaciones.</p>
+                    </div>
+                `;
+            }
+            else if (viewId === 'catalogos') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Mantenimiento de Catálogos</h2>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500">
+                        <i class="fas fa-folder-tree text-4xl mb-3 text-slate-300"></i>
+                        <p>Gestión de facultades, carreras, asignaturas y recintos institucionales.</p>
+                    </div>
+                `;
+            }
+            else if (viewId === 'bitacoras') {
+                html += `
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Bitácoras del Sistema</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead><tr class="bg-slate-50 text-slate-500"><th class="p-3">Fecha</th><th class="p-3">Acción</th><th class="p-3">Usuario</th></tr></thead>
+                            <tbody>
+                                <tr class="border-t border-slate-100"><td class="p-3 text-slate-500">Hace 5 min</td><td class="p-3 font-medium text-slate-700">Cambio de rol (A Tutor)</td><td class="p-3">admin@utp.ac.pa</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        // ==========================================
+        // 6. SIMULACIÓN DE FLUJOS (INTERACCIÓN)
+        // ==========================================
+        function simularSolicitud() {
+            const content = `
+                <div class="space-y-3">
+                    <p><strong>Asignatura:</strong> Cálculo II</p>
+                    <p><strong>Tutor:</strong> Prof. Juan Pérez</p>
+                    <p><strong>Horario:</strong> Jueves, 14:00 - 15:30</p>
+                    <p><strong>Modalidad:</strong> Presencial (Edificio 3, Aula 302)</p>
+                    <div class="bg-blue-50 p-3 rounded border border-blue-100 text-sm text-blue-800 mt-4">
+                        <i class="fas fa-info-circle mr-1"></i> Al confirmar, la solicitud será enviada al tutor para su aprobación.
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="closeModal()" class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200 rounded-lg transition">Cerrar</button>
+                <button onclick="closeModal(); showToast('¡Solicitud enviada con éxito!')" class="px-4 py-2 bg-blue-600 text-white font-medium hover:bg-blue-700 rounded-lg transition">Confirmar Solicitud</button>
+            `;
+            openModal('Detalle y Confirmación de Tutoría', content, actions);
+        }
+
+        function simularCancelacion() {
+            const content = `<p>¿Estás seguro que deseas cancelar esta solicitud para <strong>Física I</strong>? El cupo será liberado para otro estudiante.</p>`;
+            const actions = `
+                <button onclick="closeModal()" class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200 rounded-lg transition">Mantener</button>
+                <button onclick="closeModal(); showToast('Solicitud cancelada', 'info'); navigate('mis-solicitudes')" class="px-4 py-2 bg-rose-600 text-white font-medium hover:bg-rose-700 rounded-lg transition">Sí, Cancelar</button>
+            `;
+            openModal('Cancelar Solicitud', content, actions);
+        }
+
+        function simularRechazo() {
+            const content = `
+                <p class="mb-2">Indique el motivo del rechazo para notificar al estudiante:</p>
+                <textarea class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none" rows="3" placeholder="Ej. Cambio de horario imprevisto..."></textarea>
+            `;
+            const actions = `
+                <button onclick="closeModal()" class="px-4 py-2 text-slate-600 font-medium rounded-lg">Cancelar</button>
+                <button onclick="closeModal(); showToast('Solicitud rechazada y estudiante notificado', 'info')" class="px-4 py-2 bg-rose-600 text-white font-medium hover:bg-rose-700 rounded-lg transition">Confirmar Rechazo</button>
+            `;
+            openModal('Rechazar Solicitud', content, actions);
+        }
+
+        function simularRegistroResultado() {
+            const content = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Asistencia de estudiantes</label>
+                        <select class="w-full border border-slate-300 rounded p-2"><option>Asistieron todos</option><option>Faltaron algunos</option><option>Nadie asistió</option></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tema trabajado</label>
+                        <input type="text" class="w-full border border-slate-300 rounded p-2" placeholder="Ej. Derivadas parciales">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Observaciones (Opcional)</label>
+                        <textarea class="w-full border border-slate-300 rounded p-2" rows="2"></textarea>
+                    </div>
+                </div>
+            `;
+            const actions = `
+                <button onclick="closeModal()" class="px-4 py-2 text-slate-600 font-medium rounded-lg">Cancelar</button>
+                <button onclick="closeModal(); showToast('Resultado de sesión registrado con éxito')" class="px-4 py-2 bg-blue-600 text-white font-medium hover:bg-blue-700 rounded-lg transition">Guardar Resultado</button>
+            `;
+            openModal('Registrar Resultado de Tutoría', content, actions);
+        }
+
+        // Iniciar la app en estado de Login
+        window.onload = renderApp;
     </script>
 </body>
 </html>
